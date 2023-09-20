@@ -17,6 +17,14 @@ namespace BinaryKits.Zpl.Viewer.ElementDrawers
             }
         }
 
+        public byte[] ConvertSKImageToByteArray(SKImage skImage)
+        {
+            using (var data = skImage.Encode(SKEncodedImageFormat.Png, 100))
+            {
+                return data.ToArray();
+            }
+        }
+
         public void DrawBarcode(
             byte[] barcodeImageData,
             int barcodeHeight,

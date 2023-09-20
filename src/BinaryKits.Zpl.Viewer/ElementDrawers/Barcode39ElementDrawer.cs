@@ -1,4 +1,4 @@
-using BarcodeLib;
+using BarcodeStandard;
 using BinaryKits.Zpl.Label.Elements;
 using BinaryKits.Zpl.Viewer.Helpers;
 using SkiaSharp;
@@ -34,23 +34,29 @@ namespace BinaryKits.Zpl.Viewer.ElementDrawers
 
                 float labelFontSize = Math.Min(barcode.ModuleWidth * 7.2f, 72f);
                 var labelTypeFace = options.FontLoader("A");
-                var labelFont = new SKFont(labelTypeFace, labelFontSize).ToSystemDrawingFont();
-                int labelHeight = barcode.PrintInterpretationLine ? labelFont.Height : 0;
-                int labelHeightOffset = barcode.PrintInterpretationLineAboveCode ? labelHeight : 0;
+                var labelFont = new SKFont(labelTypeFace, labelFontSize);
+
+                // Get font metrics
+                var fontMetrics = new SKFontMetrics();
+                labelFont.GetFontMetrics(out fontMetrics);
+
+                // Retrieve font height from metrics - rounded up
+                int labelHeight = barcode.PrintInterpretationLine ? (int) (fontMetrics.Ascent + fontMetrics.Descent) : 0;
+                int labelHeightOffset = barcode.PrintInterpretationLineAboveCode ? (int) labelHeight : 0;
 
                 var barcodeElement = new Barcode
                 {
                     BarWidth = barcode.ModuleWidth,
-                    BackColor = Color.Transparent,
+                    BackColor = SkiaSharp.SKColors.Transparent,
                     Height = barcode.Height + labelHeight,
                     IncludeLabel = barcode.PrintInterpretationLine,
-                    LabelPosition = barcode.PrintInterpretationLineAboveCode ? LabelPositions.TOPCENTER : LabelPositions.BOTTOMCENTER,
+                    // LabelPosition = barcode.PrintInterpretationLineAboveCode ? LabelPositions.TOPCENTER : LabelPositions.BOTTOMCENTER,
                     LabelFont = labelFont,
                     AlternateLabel = interpretation
                 };
 
-                using var image = barcodeElement.Encode(TYPE.CODE39Extended, content);
-                this.DrawBarcode(this.GetImageData(image), barcode.Height, image.Width, barcode.FieldOrigin != null, x, y, labelHeightOffset, barcode.FieldOrientation);
+                using var image = barcodeElement.Encode(BarcodeStandard.Type.Code39Extended, content);
+                this.DrawBarcode(this.ConvertSKImageToByteArray(image), barcode.Height, image.Width, barcode.FieldOrigin != null, x, y, labelHeightOffset, barcode.FieldOrientation);
             }
         }
     }
